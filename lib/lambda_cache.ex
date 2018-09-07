@@ -12,7 +12,7 @@ defmodule LambdaCache do
 
       use GenServer
 
-      def child_spec(args \\ nil) do
+      def child_spec(args \\ []) do
         %{
           id: __MODULE__,
           start: {__MODULE__, :start_link, [args]}
