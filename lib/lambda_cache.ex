@@ -3,24 +3,24 @@ defmodule LambdaCache do
   Zero-arity function polling cache.
   """
 
-  @behaviour refresh :: any()
-  @behaviour interval :: non_neg_integer()
+  @callback refresh :: any()
+  @callback interval :: non_neg_integer()
 
   defmacro __using__(options) do
     quote location: :keep do
       @behaviour LambdaCache
 
-      def child_spec(args) do
+      use GenServer
+
+      def child_spec(args \\ nil) do
         %{
           id: __MODULE__,
           start: {__MODULE__, :start_link, [args]}
         }
       end
 
-      use GenServer
-
       def start_link(args) do
-        GenServer.start_link(__MODULE__, args, unquote(options))
+        GenServer.start_link(__MODULE__, args, Keyword.merge([name: __MODULE__], unquote(options)))
       end
 
       def interval do
@@ -43,7 +43,7 @@ defmodule LambdaCache do
         {:noreply, %{data: refresh(), timer: schedule_refresh(self(), interval())}}
       end
 
-      def retrieve(pid) do
+      def retrieve(pid \\ __MODULE__) do
         GenServer.call(pid, :retrieve)
       end
 
